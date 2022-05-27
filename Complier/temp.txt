@@ -1,0 +1,31 @@
+AB:
+add $s0 $v0 $a3
+beq $s0 $s0 AB
+addi $t0 $t1 1
+addiu $a0 $v0 2
+addu $s4 $zero $0
+and $s1 $s1 $s2
+andi $t4 $t7 1
+bne $s0 $s0 BA
+jal BA
+j BA
+lbu $t1 -24($t2)
+ll $t2 0($t0)
+lui $s1 22
+lw $a1 ($t3)
+nor $s1 $s2 $s3
+or $t1 $t2 $t3
+ori $v1 $v0 10
+slt $s1 $s2 $s3
+slti $a0 $a1 12
+BA:
+lhu $s5 12($s2)
+sltiu $a2 $a3 -1
+sll $t1 $t2 3
+srl $s5 $s2 2
+sb $t1 3($s0)
+sc $t2 ($s2)
+sh $t5 -12($s3)
+sw $t6 ($s1)
+sub $s1 $s2 $s6
+subu $s2 $s3 $t0
