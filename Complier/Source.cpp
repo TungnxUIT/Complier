@@ -17,7 +17,6 @@ string I_type[] = { "addi", "addiu", "andi", "beq", "bne", "lbu", "lhu", "lui", 
 string J_type[2] = { "j", "jal" };
 
 void InputToTemp() {
-	int numbline = 0;
 	string s;
 	int flag = 0;
 	int check = 0;
@@ -28,14 +27,14 @@ void InputToTemp() {
 		if (s == "") continue;
 		if (s == "\n") continue;
 		for (int i = 0; i < s.size(); i++) {
+			if ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z')) seeWord = true;
 			if (s[i] == '.') {
-				if (s[i + 1] == 't' || s[i + 1] == 'd') {
+				if ((s[i + 1] == 't' || s[i + 1] == 'd') && !seeWord) {
 					flag++;
 					break;
 				}
 			}
-			if ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z')) seeWord = true;
-			if (flag <= 1) break;
+			if (flag <= 1) continue;
 			if (s[i] == '\t' || s[i] == ' ') {
 				if (!seeWord) continue;
 				if (s[i + 1] != ' ' && s[i + 1] != '\t') temp << " ";
@@ -45,13 +44,19 @@ void InputToTemp() {
 			if (s[i] == '#')break;
 			if (s[i] == ',') continue;
 			if (s[i] == ':') {
-				check = 0;
 				temp << ':';
+				check = 0;
 				for (int j = i + 1; j < s.size(); j++) {
 					if ((s[j] == ' ' || s[j] == '\t') && !check)continue;
+					if (s[j] == '#')break;
 					check++;
 					if(check == 1) temp << '\n';
 					if (s[j] == ',') continue;
+					if (s[j] == '\t' || s[j] == ' ') {
+						if (!seeWord) continue;
+						if (s[j + 1] != ' ' && s[j + 1] != '\t') temp << " ";
+						continue;
+					}
 					temp << s[j];
 				}
 				break;
@@ -70,14 +75,14 @@ void CalculateImmediate() {
 	while (temp) {
 		int check = false;
 		getline(temp, s);
-		for (int i = 0; i < s.size(); i++) {
-			if (s[i] == ':') {
-				Lable.insert(make_pair(s, lable));
-				check = true;
-				break;
+			for (int i = 0; i < s.size(); i++) {
+				if (s[i] == ':') {
+					Lable.insert(make_pair(s, lable));
+					check = true;
+					break;
+				}
 			}
-		}
-		if(!check) lable += 4;
+			if (!check) lable += 4;
 	}
 }
 string RegisterBin(string s) {
@@ -189,44 +194,40 @@ int DefineFormat(string s) {
 		if (s == J_type[i]) return 3;
 	return 0;
 }
-string Dec_to_Bin_16bit(string s) {
-	if (s.empty()) return "0000000000000000";
-	int n = stoi(s);
+
+string Dec_to_Bin(string num, int bit) {
 	string bin = "";
-	for (int i = 15; i >= 0; i--) {
-		int k = n >> i;
-		if (k & 1)
-			bin += "1";
-		else
+	if (num.empty())
+		for (int i = bit - 1; i >= 0; i--)
 			bin += "0";
+	else {
+		int n = stoi(num);
+		for (int i = bit - 1; i >= 0; i--) {
+			int k = n >> i;
+			if (k & 1)
+				bin += "1";
+			else
+				bin += "0";
+		}
 	}
 	return bin;
 }
-string Dec_to_Bin_5bit(string s) {
-	if (s.empty()) return "00000";
-	int n = stoi(s);
-	string bin = "";
-	for (int i = 4; i >= 0; i--) {
-		int k = n >> i;
-		if (k & 1)
-			bin += "1";
-		else
-			bin += "0";
+int Hex_to_Dec(string num) {
+	int i, len, r;
+	len = num.size();
+	int hex = 0;
+	for (i = 0; num[i] != '\0'; i++)
+	{
+		len--;
+		if (num[i] >= '0' && num[i] <= '9')
+			r = num[i] - 48;
+		else if (num[i] >= 'a' && num[i] <= 'f')
+			r = num[i] - 87;
+		else if (num[i] >= 'A' && num[i] <= 'F')
+			r = num[i] - 55;
+		hex += r * pow(16, len);
 	}
-	return bin;
-}
-string Dec_to_Bin_26bit(long s) {
-	if (s == 0) return "00000000000000000000000000";
-	int n = s;
-	string bin = "";
-	for (int i = 25; i >= 0; i--) {
-		int k = n >> i;
-		if (k & 1)
-			bin += "1";
-		else
-			bin += "0";
-	}
-	return bin;
+	return hex;
 }
 
 void Process() {
@@ -238,6 +239,12 @@ void Process() {
 		if (s == "" || s == "\n")continue;
 		it1 = Lable.find(s);
 		if (it1 != Lable.end()) continue;
+		if (s == "syscall") {
+			output << "00000000000000000000000000001100";
+			output << "\n";
+			pc += 4;
+			continue;
+		}
 		int format = DefineFormat(s);
 		if (format == 1) {
 			if (s == "jr") {
@@ -255,7 +262,7 @@ void Process() {
 			}
 			it2 = Core.find(s);
 			bin += it2->second.first;
-			bin += RegisterBin(rs) + RegisterBin(rt) + RegisterBin(rd) + Dec_to_Bin_5bit(shamt) + it2->second.second;
+			bin += RegisterBin(rs) + RegisterBin(rt) + RegisterBin(rd) + Dec_to_Bin(shamt, 5) + it2->second.second;
 		}
 		else if (format == 2) {
 			if (s == "lw" || s == "sw" || s == "lbu" || s == "lhu" || s == "sb" || s == "sc"|| s == "sh" || s == "ll") {
@@ -274,10 +281,19 @@ void Process() {
 				}
 			}
 			else if (s == "lui") {
+				string ss;
 				temp >> rt;
-				temp >> imm;
+				temp >> ss;
+				if (ss[1] != 'x') imm = ss;
+				else {
+					for (int i = 2; i < ss.size(); i++)
+						imm += ss[i];
+					int n = Hex_to_Dec(imm);
+					imm = to_string(n);
+				}
 			}
 			else if (s == "beq" || s == "bne") {
+				int pc1 = pc;
 				temp >> rs;
 				temp >> rt;
 				temp >> address;
@@ -294,14 +310,15 @@ void Process() {
 			}
 			it2 = Core.find(s);
 			bin += it2->second.first;
-			bin += RegisterBin(rs) + RegisterBin(rt) + Dec_to_Bin_16bit(imm);
+			bin += RegisterBin(rs) + RegisterBin(rt) + Dec_to_Bin(imm, 16);
 		}
 		else if (format == 3) {
 			it2 = Core.find(s);
 			temp >> address;
 			address += ':';
 			it1 = Lable.find(address);
-			bin += it2->second.first + Dec_to_Bin_26bit(it1->second/4);
+			imm = to_string(it1->second / 4);
+			bin += it2->second.first + Dec_to_Bin(imm, 26);
 		}
 		output << bin;
 		output << "\n";
