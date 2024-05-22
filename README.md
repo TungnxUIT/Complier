@@ -10,11 +10,16 @@ Or using other platform such as Visual Studio Code, CodeBlock,... for reading c+
 
 ## Suported Instruction
 
-- R type
+- R type:
+  
   add, addu, and, or, nor, slt, sltu, sll, srl, sub, subu, jr
-- I type
+  
+- I type:
+
   addi, addiu, andi, beq, bne, lbu, lhu, lui, lw, sw, ll, ori, slti, sltiu, sb, sc, sh
-- J type
+  
+- J type:
+
   jal, j
 
 ## Testing
