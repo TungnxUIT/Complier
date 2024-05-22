@@ -6,7 +6,7 @@ This is a simple tool that can compile an Assembly language to machine code base
 
 This project was written in C++ by Visual Studio. You can open ***compiler.sln*** through Visual Studio.
 
-Or using other platforms such as Visual Studio Code, CodeBlock,... for reading c++ file instead using Visual Studio.
+Or using other platforms such as Visual Studio Code, CodeBlock,... for reading .cpp file instead using Visual Studio.
 
 ## Suported Instruction
 
