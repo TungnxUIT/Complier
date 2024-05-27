@@ -24,5 +24,5 @@ Or using other platforms such as Visual Studio Code, CodeBlock,... for reading .
 
 ## Testing
 
-Looking for ***input.txt*** and ***output.txt*** in source file for more detail.
+Looking for ***input.txt*** and ***output.txt*** in comppiler folder for more detail.
   
